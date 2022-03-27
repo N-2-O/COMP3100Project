@@ -35,5 +35,22 @@ public class ServerInfo {
         rJobs = Integer.parseInt(info[8]);
     }
 
+    public String getName() {
+        return this.serverName;
+    }
 
+    public int getCores() {
+        return this.core;
+    }
+
+    public void printServer() {
+        System.out.print(this.serverName + " ");
+        System.out.print(this.serverID + " ");
+        System.out.print(this.status + " ");
+        System.out.print(this.startTime + " ");
+        System.out.print(this.core + " ");
+        System.out.print(this.memory + " ");
+        System.out.print(this.disk + " ");
+        System.out.println();
+    }
 }
