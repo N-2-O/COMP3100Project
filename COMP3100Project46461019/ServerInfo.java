@@ -43,6 +43,10 @@ public class ServerInfo {
         return this.core;
     }
 
+    public int getID() {
+        return this.serverID;
+    }
+
     public void printServer() {
         System.out.print(this.serverName + " ");
         System.out.print(this.serverID + " ");
