@@ -24,7 +24,7 @@ public class DSClient {
             String sResponse = input.readLine(); //expect "OK"
             System.out.println("Server >\t" + sResponse);
 
-            String username = "Nathan";
+            String username = System.getProperty("user.name");
             output.write(("AUTH " + username + "\n").getBytes());
             output.flush();
             System.out.println("Client >\tAUTH " + username);
@@ -46,18 +46,11 @@ public class DSClient {
     public static ServerInfo[] readServer(BufferedReader input, DataOutputStream output) {
         ServerInfo[] servers = new ServerInfo[0]; //init empty array
         try {
-            output.write(("REDY\n").getBytes());
-            output.flush();
-            System.out.println("Client >\t" + "REDY");
-
-            String sResponse = input.readLine(); //expect jobs
-            System.out.println("Server >\t" + sResponse);
-
             output.write(("GETS All\n").getBytes());
             output.flush();
             System.out.println("Client >\tGETS All");
             
-            sResponse = input.readLine(); //expect DATA
+            String sResponse = input.readLine(); //expect DATA
             System.out.println("Server >\t" + sResponse);
 
             output.write(("OK\n").getBytes());
@@ -89,13 +82,12 @@ public class DSClient {
     }
 
     /**
-     * Schedules jobs to the given servers in a round robin fashion 
-     * NOTE: This function currently only implements the SCHD command
-     * @param servers - An array containing servers to be utilised
+     * Schedules jobs to the given servers using the given algorithm
      * @param input - The input stream
      * @param output - The output stream 
+     * @param alg - The scheduling algorithm
      */
-    public static void scheduleJobs(ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
+    public static void scheduleJobs(BufferedReader input, DataOutputStream output, String alg) {
         try {
             output.write(("REDY\n").getBytes());
             output.flush();
@@ -103,13 +95,38 @@ public class DSClient {
 
             String sResponse = input.readLine(); //expect jobs
             System.out.println("Server >\t" + sResponse);
-            String[] job = sResponse.split(" ");
+            
+            ServerInfo[] servers = readServer(input, output);
 
+            if (alg.equals("LRR")) {
+                servers = filterServers(servers, findLargestServer(servers));
+                roundRobin(sResponse, servers, input, output);
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }        
+    }
+
+    /**
+     * Implements Round Robin Scheduling
+     * NOTE: This function assumes all the servers meets all requirements of the job
+     * NOTE: This function currently only implements the SCHD event, others are ignored
+     * @param sResponse - Initial response to first REDY by client
+     * @param servers - Array of servers to be utilised
+     * @param input - The input stream
+     * @param output - The output Stream
+     */
+    public static void roundRobin(String sResponse, ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
+        try {
+            String simEvent;
+            JobInfo job; 
             int i = 0;
             while (!sResponse.equals("NONE")) {
-                job = sResponse.split(" ");
-                if (job[0].equals("JOBN")) {
-                    String jobSchd = "SCHD " + job[2] + " " + servers[i].getName() + " " + servers[i].getID() + "\n";
+                simEvent = sResponse.split(" ")[0];
+                if (simEvent.equals("JOBN")) {
+                    job = new JobInfo(sResponse.split(" "));
+                    String jobSchd = "SCHD " + job.getIndex() + " " + servers[i].getName() + " " + servers[i].getID() + "\n";
                     i++;
                     output.write(jobSchd.getBytes());
                     output.flush();
@@ -117,10 +134,10 @@ public class DSClient {
                     
                     sResponse = input.readLine(); //expect ok
                     System.out.println("Server >\t" + sResponse);
+                    if (i >= servers.length) {
+                        i = 0;
+                    } 
                 }
-                if (i >= servers.length) {
-                    i = 0;
-                } 
                 output.write(("REDY\n").getBytes());
                 output.flush();
                 System.out.println("Client >\tREDY");
@@ -130,8 +147,8 @@ public class DSClient {
             }
         }
         catch (Exception e) {
-            System.out.println(e);
-        }        
+            System.out.println();
+        }
     }
 
     /**
@@ -206,19 +223,33 @@ public class DSClient {
         return filtered;
     }
 
+    /**
+     * Prints usage information
+     */
+    public static void incorrectUsage() {
+        System.out.println("Usage:");
+        System.out.println("\t $ java COMP3100Project46461019.DSClient -lrr");
+        System.exit(1);
+    }
     public static void main(String args[]) {
         try {
             Socket s = new Socket("localhost", 50000);
             BufferedReader dIn = new BufferedReader(new InputStreamReader(s.getInputStream()));
             DataOutputStream dOut = new DataOutputStream(s.getOutputStream());
-
+            String alg = "LRR";
+            if (args.length < 1) {
+                incorrectUsage();
+            }
+            if (args[0].equals("-lrr")) {
+                alg = "LRR";
+            }
+            else {
+                incorrectUsage();
+            }
             System.out.println("<------------Handshake------------>");
             handshake(dIn, dOut);
-            System.out.println("<------------read and filter------------>");
-            ServerInfo[] servers = readServer(dIn, dOut);
-            servers = filterServers(servers, findLargestServer(servers));
             System.out.println("<------------schedule------------>");
-            scheduleJobs(servers, dIn, dOut);
+            scheduleJobs(dIn, dOut, alg);
             System.out.println("<------------quit------------>");
             quit(dIn, dOut);
 
