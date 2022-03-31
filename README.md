@@ -13,6 +13,6 @@ Running:
 `$ java COMP3100Project46461019.DSClient -lrr`
 
 Testing:
-`./testSamples.sh`
+`$ ./testSamples.sh`
 
 Author: Nathan Ho
