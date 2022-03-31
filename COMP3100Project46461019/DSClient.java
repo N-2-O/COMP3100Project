@@ -19,18 +19,14 @@ public class DSClient {
         try {
             output.write(("HELO\n").getBytes());
             output.flush();
-            System.out.println("Client >\tHELO");
 
-            String sResponse = input.readLine(); //expect "OK"
-            System.out.println("Server >\t" + sResponse);
+            input.readLine(); //expect "OK"
 
             String username = System.getProperty("user.name");
             output.write(("AUTH " + username + "\n").getBytes());
             output.flush();
-            System.out.println("Client >\tAUTH " + username);
 
-            sResponse = input.readLine(); //expect "OK"
-            System.out.println("Server >\t" + sResponse);
+            input.readLine(); //expect "OK"
         }
         catch (Exception e) {
             System.out.println(e);
@@ -48,21 +44,17 @@ public class DSClient {
         try {
             output.write(("GETS All\n").getBytes());
             output.flush();
-            System.out.println("Client >\tGETS All");
             
             String sResponse = input.readLine(); //expect DATA
-            System.out.println("Server >\t" + sResponse);
 
             output.write(("OK\n").getBytes());
             output.flush();
-            System.out.println("Client >\tOK");
 
             String[] data = sResponse.split(" ");
             int size = Integer.parseInt(data[1]);
             servers = new ServerInfo[size];
             for (int i = 0; i < size; i++) {
                 sResponse = input.readLine(); //expect server information
-                System.out.println("Server >\t" + sResponse);
                 ServerInfo toAdd = new ServerInfo(sResponse.split(" "));
                 servers[i] = toAdd;
                 // toAdd.printServer();
@@ -70,10 +62,8 @@ public class DSClient {
 
             output.write(("OK\n").getBytes());
             output.flush();
-            System.out.println("Client >\tOK");
 
-            sResponse = input.readLine(); 
-            System.out.println("Server >\t" + sResponse); //expect .
+            sResponse = input.readLine(); //expect .
         }
         catch (Exception e) {
             System.out.println(e);
@@ -91,10 +81,8 @@ public class DSClient {
         try {
             output.write(("REDY\n").getBytes());
             output.flush();
-            System.out.println("Client >\tREDY");
 
             String sResponse = input.readLine(); //expect jobs
-            System.out.println("Server >\t" + sResponse);
             
             ServerInfo[] servers = readServer(input, output);
 
@@ -130,20 +118,16 @@ public class DSClient {
                     i++;
                     output.write(jobSchd.getBytes());
                     output.flush();
-                    System.out.println("Client >\t" + jobSchd);
                     
                     sResponse = input.readLine(); //expect ok
-                    System.out.println("Server >\t" + sResponse);
                     if (i >= servers.length) {
                         i = 0;
                     } 
                 }
                 output.write(("REDY\n").getBytes());
                 output.flush();
-                System.out.println("Client >\tREDY");
 
                 sResponse = input.readLine(); //expect JOBN or other command
-                System.out.println("Server >\t" + sResponse); 
             }
         }
         catch (Exception e) {
@@ -160,10 +144,8 @@ public class DSClient {
         try {
             output.write(("QUIT\n").getBytes());
             output.flush();
-            System.out.println("Client >\t" + "QUIT");
 
-            String sResponse = input.readLine(); //expect "QUIT"
-            System.out.println("Server >\t" + sResponse);
+            input.readLine(); //expect "QUIT"
         }
         catch (Exception e) {
             System.out.println(e);
@@ -233,29 +215,28 @@ public class DSClient {
     }
     public static void main(String args[]) {
         try {
-            Socket s = new Socket("localhost", 50000);
-            BufferedReader dIn = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            DataOutputStream dOut = new DataOutputStream(s.getOutputStream());
-            String alg = "LRR";
+            String alg;
+            final int defaultPort = 50000;
             if (args.length < 1) {
                 incorrectUsage();
             }
             if (args[0].equals("-lrr")) {
                 alg = "LRR";
+                System.out.println("DSClient simulator started");
+                Socket s = new Socket("localhost", defaultPort);
+                BufferedReader dIn = new BufferedReader(new InputStreamReader(s.getInputStream()));
+                DataOutputStream dOut = new DataOutputStream(s.getOutputStream());
+                handshake(dIn, dOut);
+                scheduleJobs(dIn, dOut, alg);
+                quit(dIn, dOut);
+
+                dIn.close();
+                dOut.close();            
+                s.close();
             }
             else {
                 incorrectUsage();
             }
-            System.out.println("<------------Handshake------------>");
-            handshake(dIn, dOut);
-            System.out.println("<------------schedule------------>");
-            scheduleJobs(dIn, dOut, alg);
-            System.out.println("<------------quit------------>");
-            quit(dIn, dOut);
-
-            dIn.close();
-            dOut.close();            
-            s.close();
         }
         catch (Exception e) {
             System.out.println(e);
