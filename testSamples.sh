@@ -5,7 +5,7 @@
 testFiles="./config"
 dsSim="./pre-compiled"
 
-if ! test -d "log"; then
+if ! test -d "./log"; then
     mkdir log
 fi
 l="./log"
@@ -20,10 +20,11 @@ javac COMP3100Project46461019/DSClient.java COMP3100Project46461019/ServerInfo.j
 
 for f in $testFiles/*.xml; do 
     echo "running server and client with $f"
-    $dsSim/ds-server -c $f -v brief >> $l/dsRef.log & sleep 2
-    $dsSim/ds-client -a lrr
-
-    $dsSim/ds-server -c $f -v brief -n >> $l/client.log & sleep 2
+    $dsSim/ds-server -c $f -v brief -n >> $l/dsRef.log & sleep 3
+    $dsSim/ds-client -a lrr -n
+    sleep 2
+    echo "Java implementation"
+    $dsSim/ds-server -c $f -v brief -n >> $l/client.log & sleep 3
     java COMP3100Project46461019.DSClient -lrr
     echo "done running with $f"
 done
