@@ -30,6 +30,18 @@ public class JobInfo {
         return this.index;
     }
 
+    public int getCores() {
+        return this.coresRequired;
+    }
+
+    public int getMem() {
+        return this.memRequired;
+    }
+
+    public int getDisk() {
+        return this.diskRequired;
+    }
+
     public void printJob() {
         System.out.print(this.submitTime + " ");
         System.out.print(this.index + " ");
