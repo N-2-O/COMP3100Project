@@ -1,6 +1,7 @@
 package COMP3100Project46461019;
 
 import java.net.*;
+import java.nio.Buffer;
 import java.io.*;
 
 /**
@@ -70,7 +71,7 @@ public class DSClient {
         }
         return servers;
     }
-
+    
     /**
      * Schedules jobs to the given servers using the given algorithm
      * @param input - The input stream
@@ -84,11 +85,13 @@ public class DSClient {
 
             String sResponse = input.readLine(); //expect jobs
             
-            ServerInfo[] servers = readServer(input, output);
-
             if (alg.equals("LRR")) {
+                ServerInfo[] servers = readServer(input, output);
                 servers = filterServers(servers, findLargestServer(servers));
                 roundRobin(sResponse, servers, input, output);
+            }
+            else if (alg.equals("FC")) {
+                firstCapable(sResponse, input, output);
             }
         }
         catch (Exception e) {
@@ -132,6 +135,60 @@ public class DSClient {
         }
         catch (Exception e) {
             System.out.println();
+        }
+    }
+
+    /**
+     * Implements First Capable Scheduling
+     * @param input - The input stream
+     * @param output - The output Stream
+     */
+    public static void firstCapable(String sResponse, BufferedReader input, DataOutputStream output) {
+        try {
+            String simEvent, getsString, jobSchd;
+            JobInfo job; 
+            while (!sResponse.equals("NONE")) {
+                simEvent = sResponse.split(" ")[0];
+                if (simEvent.equals("JOBN")) {
+                    job = new JobInfo(sResponse.split(" "));     
+                    getsString = "GETS Capable " + job.getCores() + " " + job.getMem() + " " + job.getDisk() + "\n";
+                    output.write(getsString.getBytes());
+                    output.flush();
+            
+                    sResponse = input.readLine(); //expect DATA X Y
+
+                    output.write(("OK\n").getBytes());
+                    output.flush();
+
+                    String[] data = sResponse.split(" ");
+                    int size = Integer.parseInt(data[1]);
+                    
+                    sResponse = input.readLine(); // expect first capable server
+                    ServerInfo server = new ServerInfo(sResponse.split(" "));
+
+                    for (int i = 0; i < size-1; i++) {
+                        input.readLine(); //expect all capable servers not needed
+                    }
+
+                    output.write(("OK\n").getBytes());
+                    output.flush();
+
+                    sResponse = input.readLine(); //expect .  
+                    
+                    jobSchd = "SCHD " + job.getIndex() + " " + server.getName() + " " + server.getID() + "\n";
+                    output.write(jobSchd.getBytes());
+                    output.flush();
+
+                    sResponse = input.readLine(); //expect OK  
+                }
+                output.write(("REDY\n").getBytes());
+                output.flush();
+
+                sResponse = input.readLine(); //expect JOBN or other command
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
         }
     }
 
@@ -222,21 +279,25 @@ public class DSClient {
             }
             if (args[0].equals("-lrr")) {
                 alg = "LRR";
-                System.out.println("DSClient simulator started");
-                Socket s = new Socket("localhost", defaultPort);
-                BufferedReader dIn = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                DataOutputStream dOut = new DataOutputStream(s.getOutputStream());
-                handshake(dIn, dOut);
-                scheduleJobs(dIn, dOut, alg);
-                quit(dIn, dOut);
-
-                dIn.close();
-                dOut.close();            
-                s.close();
+            }
+            else if (args[0].equals("-fc")) {
+                alg = "FC";
             }
             else {
+                alg = "";
                 incorrectUsage();
             }
+            System.out.println("DSClient simulator started");
+            Socket s = new Socket("localhost", defaultPort);
+            BufferedReader dIn = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            DataOutputStream dOut = new DataOutputStream(s.getOutputStream());
+            handshake(dIn, dOut);
+            scheduleJobs(dIn, dOut, alg);
+            quit(dIn, dOut);
+
+            dIn.close();
+            dOut.close();            
+            s.close();
         }
         catch (Exception e) {
             System.out.println(e);
