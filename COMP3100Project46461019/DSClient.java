@@ -1,7 +1,6 @@
 package COMP3100Project46461019;
 
 import java.net.*;
-import java.nio.Buffer;
 import java.io.*;
 
 /**
@@ -150,24 +149,25 @@ public class DSClient {
             while (!sResponse.equals("NONE")) {
                 simEvent = sResponse.split(" ")[0];
                 if (simEvent.equals("JOBN")) {
-                    job = new JobInfo(sResponse.split(" "));     
+                    job = new JobInfo(sResponse.split(" ")); //job to be scheduled   
                     getsString = "GETS Capable " + job.getCores() + " " + job.getMem() + " " + job.getDisk() + "\n";
-                    output.write(getsString.getBytes());
+                    output.write(getsString.getBytes()); //gets capable servers
                     output.flush();
             
-                    sResponse = input.readLine(); //expect DATA X Y
+                    sResponse = input.readLine(); //expect DATA X Y 
+                    //where X is the number of capable servers
 
                     output.write(("OK\n").getBytes());
                     output.flush();
 
                     String[] data = sResponse.split(" ");
-                    int size = Integer.parseInt(data[1]);
+                    int size = Integer.parseInt(data[1]); //number of capable servers
                     
                     sResponse = input.readLine(); // expect first capable server
-                    ServerInfo server = new ServerInfo(sResponse.split(" "));
+                    ServerInfo server = new ServerInfo(sResponse.split(" ")); //save server information
 
                     for (int i = 0; i < size-1; i++) {
-                        input.readLine(); //expect all capable servers not needed
+                        input.readLine(); //expect all + read capable servers not needed
                     }
 
                     output.write(("OK\n").getBytes());
@@ -175,7 +175,7 @@ public class DSClient {
 
                     sResponse = input.readLine(); //expect .  
                     
-                    jobSchd = "SCHD " + job.getIndex() + " " + server.getName() + " " + server.getID() + "\n";
+                    jobSchd = "SCHD " + job.getIndex() + " " + server.getName() + " " + server.getID() + "\n"; //schedule the job
                     output.write(jobSchd.getBytes());
                     output.flush();
 

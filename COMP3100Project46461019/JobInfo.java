@@ -8,15 +8,10 @@ public class JobInfo {
     int memRequired;
     int diskRequired;
 
-    public JobInfo(int st, int i, int rt, int cr, int mr, int dr) {
-        submitTime = st;
-        index = i;
-        runTime = rt;
-        coresRequired = cr;
-        memRequired = mr;
-        diskRequired = dr;
-    }
-
+    /**
+     * Constructor to parse string array to class JobInfo
+     * @param info - String array containing the job information
+     */
     public JobInfo(String[] info) {
         submitTime = Integer.parseInt(info[1]);
         index = Integer.parseInt(info[2]);
@@ -26,23 +21,43 @@ public class JobInfo {
         diskRequired = Integer.parseInt(info[6]);
     }
 
+    /**
+     * 
+     * @return - The index of the job
+     */
     public int getIndex() {
         return this.index;
     }
 
+    /**
+     * 
+     * @return - The cored required for the job
+     */
     public int getCores() {
         return this.coresRequired;
     }
 
+    /**
+     * 
+     * @return - The memory required for the job
+     */
     public int getMem() {
         return this.memRequired;
     }
 
+    /**
+     * 
+     * @return - The disk space required for the job
+     */
     public int getDisk() {
         return this.diskRequired;
     }
 
+    /**
+     * Prints job information in the same way displayed by the server
+     */
     public void printJob() {
+        System.out.print("Job ");
         System.out.print(this.submitTime + " ");
         System.out.print(this.index + " ");
         System.out.print(this.runTime+ " ");

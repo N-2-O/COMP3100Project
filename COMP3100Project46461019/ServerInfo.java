@@ -11,18 +11,10 @@ public class ServerInfo {
     int wJobs; //Jobs waiting
     int rJobs; //Jobs running
 
-    public ServerInfo(String n, int id, String s, int st, int c, int m, int d, int wj, int rj) {
-        serverName = n;
-        serverID = id;
-        status = s;
-        startTime = st;
-        core = c;
-        memory = m;
-        disk = d;
-        wJobs = wj;
-        rJobs = rj;
-    }
-
+    /**
+     * Constructor to parse string array to to class ServerInfo
+     * @param info - 
+     */
     public ServerInfo(String[] info) {
         serverName = info[0];
         serverID = Integer.parseInt(info[1]);
@@ -35,19 +27,35 @@ public class ServerInfo {
         rJobs = Integer.parseInt(info[8]);
     }
 
+    /**
+     * 
+     * @return - The name of the server
+     */
     public String getName() {
         return this.serverName;
     }
 
+    /**
+     * 
+     * @return - The number of cores 
+     */
     public int getCores() {
         return this.core;
     }
 
+    /**
+     * 
+     * @return - The server ID
+     */
     public int getID() {
         return this.serverID;
     }
 
+    /**
+     * Print the server information
+     */
     public void printServer() {
+        System.out.print("Server: ");
         System.out.print(this.serverName + " ");
         System.out.print(this.serverID + " ");
         System.out.print(this.status + " ");
