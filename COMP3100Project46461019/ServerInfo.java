@@ -100,4 +100,59 @@ public class ServerInfo {
         System.out.print(this.rJobs + " ");
         System.out.println();
     }
+
+    /**
+     * Prints out server information
+     * @param servers - An array containing servers to be printed
+     */
+    public static void viewServers(ServerInfo[] servers) {
+        // Print server information
+        for (int i = 0; i < servers.length; i++) {
+            servers[i].printServer();
+        }
+    }
+
+    /**
+     * Filter servers of the given server type
+     * @param servers - The array of servers
+     * @param serverName - The name of the server to be filtered
+     * @return An array containing servers of the same type
+     */
+    public static ServerInfo[] filterServersByName(ServerInfo[] servers, String serverName) {
+        int num = 0;
+        for (int i = 0; i < servers.length; i ++) {
+            if (servers[i].getName().equals(serverName)) {
+                num++;
+            }
+        }
+        ServerInfo[] filtered = new ServerInfo[num];
+        int index = 0;
+        for (int i = 0; i < servers.length; i++) {
+            if (servers[i].getName().equals(serverName)) {
+                filtered[index] = servers[i];
+                index++;
+            }
+        }
+        return filtered;
+    }
+
+    /**
+     * Finds the largest server type in a given array of servers
+     * @param servers - The array of servers provided by server
+     * @return The name of the largest server
+     */
+    public static String findLargestServerType(ServerInfo[] servers) {
+        // Finds the name of the largest server
+        String largestServer = servers[0].getName();
+        int largestCore = servers[0].getCores();
+        for (int i = 0; i < servers.length; i++) {
+            if (servers[i].getCores() > largestCore) {
+                largestServer = servers[i].getName();
+                largestCore = servers[i].getCores();
+            }
+        }
+        return largestServer;
+    }
+
+
 }
