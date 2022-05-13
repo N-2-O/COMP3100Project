@@ -86,7 +86,7 @@ public class DSClient {
             
             if (alg.equals("LRR")) {
                 ServerInfo[] servers = readServer(input, output);
-                servers = filterServers(servers, findLargestServer(servers));
+                servers = ServerInfo.filterServersByName(servers, ServerInfo.findLargestServerType(servers));
                 roundRobin(sResponse, servers, input, output);
             }
             else if (alg.equals("FC")) {
@@ -109,14 +109,14 @@ public class DSClient {
      */
     public static void roundRobin(String sResponse, ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
         try {
-            String simEvent;
+            String simEvent, jobSchd;
             JobInfo job; 
             int i = 0;
             while (!sResponse.equals("NONE")) {
                 simEvent = sResponse.split(" ")[0];
                 if (simEvent.equals("JOBN")) {
                     job = new JobInfo(sResponse.split(" "));
-                    String jobSchd = "SCHD " + job.getIndex() + " " + servers[i].getName() + " " + servers[i].getID() + "\n";
+                    jobSchd = "SCHD " + job.getIndex() + " " + servers[i].getName() + " " + servers[i].getID() + "\n";
                     i++;
                     output.write(jobSchd.getBytes());
                     output.flush();
@@ -139,6 +139,7 @@ public class DSClient {
 
     /**
      * Implements First Capable Scheduling
+     * @param sResponse - Initial response to first REDY by client
      * @param input - The input stream
      * @param output - The output Stream
      */
@@ -192,6 +193,36 @@ public class DSClient {
         }
     }
 
+    public static void customSchedule(String sResponse, ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
+        try {
+            String simEvent, jobSchd;
+            JobInfo job; 
+            int i = 0;
+            while (!sResponse.equals("NONE")) {
+                simEvent = sResponse.split(" ")[0];
+                if (simEvent.equals("JOBN")) {
+                    // job = new JobInfo(sResponse.split(" "));
+                    // jobSchd = "SCHD " + job.getIndex() + " " + servers[i].getName() + " " + servers[i].getID() + "\n";
+                    // i++;
+                    // output.write(jobSchd.getBytes());
+                    // output.flush();
+                    
+                    // sResponse = input.readLine(); //expect ok
+                    // if (i >= servers.length) {
+                    //     i = 0;
+                    // } 
+                }
+                output.write(("REDY\n").getBytes());
+                output.flush();
+
+                sResponse = input.readLine(); //expect JOBN or other command
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
     /**
      * Implements the protocol to terminate connection
      * @param input - The input Stream
@@ -208,60 +239,7 @@ public class DSClient {
             System.out.println(e);
         }
     }
-
-    /**
-     * Prints out server information
-     * @param servers - An array containing servers to be printed
-     */
-    public static void viewServers(ServerInfo[] servers) {
-        // Print server information
-        for (int i = 0; i < servers.length; i++) {
-            servers[i].printServer();
-        }
-    }
     
-    /**
-     * Finds the largest server type in a given array of servers
-     * @param servers - The array of servers provided by server
-     * @return The name of the largest server
-     */
-    public static String findLargestServer(ServerInfo[] servers) {
-        // Finds the name of the largest server
-        String largestServer = servers[0].getName();
-        int largestCore = servers[0].getCores();
-        for (int i = 0; i < servers.length; i++) {
-            if (servers[i].getCores() > largestCore) {
-                largestServer = servers[i].getName();
-                largestCore = servers[i].getCores();
-            }
-        }
-        return largestServer;
-    }
-
-    /**
-     * Filter servers of the given server type
-     * @param servers - The array of servers
-     * @param serverName - The name of the server to be filtered
-     * @return An array containing servers of the same type
-     */
-    public static ServerInfo[] filterServers(ServerInfo[] servers, String serverName) {
-        int num = 0;
-        for (int i = 0; i < servers.length; i ++) {
-            if (servers[i].getName().equals(serverName)) {
-                num++;
-            }
-        }
-        ServerInfo[] filtered = new ServerInfo[num];
-        int index = 0;
-        for (int i = 0; i < servers.length; i++) {
-            if (servers[i].getName().equals(serverName)) {
-                filtered[index] = servers[i];
-                index++;
-            }
-        }
-        return filtered;
-    }
-
     /**
      * Prints usage information
      */
