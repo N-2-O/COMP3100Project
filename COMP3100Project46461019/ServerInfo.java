@@ -125,6 +125,18 @@ public class ServerInfo {
     
     /**
      * 
+     * @param c -
+     * @param m
+     * @param d
+     */
+    public void updateServer(int c, int m, int d) {
+        this.setAvailCores(c);
+        this.setAvailMem(m);
+        this.setAvailDisk(d);
+    }
+
+    /**
+     * 
      * @return - True if there are jobs running
      */
     public boolean hasJobRunning() {
@@ -157,6 +169,15 @@ public class ServerInfo {
         System.out.print(this.wJobs + " ");
         System.out.print(this.rJobs + " ");
         System.out.println();
+    }
+
+    public static ServerInfo findServer(String serverName, int serverID, ServerInfo[] servers) {
+        for (ServerInfo i : servers) {
+            if (i.getName().equals(serverName) && i.getID() == serverID) {
+                return i;
+            }
+        }
+        return new ServerInfo();
     }
 
     /**
@@ -221,29 +242,22 @@ public class ServerInfo {
      */
     public static ServerInfo findClosestCore(ServerInfo[] servers, JobInfo job, int minRemainingPartition) {
         ServerInfo server = new ServerInfo();
-        for (int i = 0; i < servers.length; i++) {
-            if (servers[i].getAvailCores() >= job.getCores() + minRemainingPartition && servers[i].getAvailMem() >= job.getMem() && servers[i].getAvailDisk() >= job.getDisk()) { //the first server that meets minimum requirements
-                server = servers[i];
-                return server;
-            }
-        } // no free servers that meet requirement
-        
         for (int i = 0; i < servers.length; i++) { 
-            if (servers[i].getCores() >= job.getCores() + minRemainingPartition && !servers[i].hasJobWaiting()) { //the first server that meets minimum core requirements and has no job waiting
-                server = servers[i];
-                return server;
-            }
-        } // no servers with no waiting jobs that meet requirement
-        
-        //all servers in use and have jobs waiting
-        for (int i = 0; i < servers.length; i++) {
-            if (servers[i].getCores() >= job.getCores() + minRemainingPartition) { //the first server that meets minimum core requirements
+            if (servers[i].getAvailCores() >= job.getCores() + minRemainingPartition) { //the first server that meets minimum core requirements and has no job waiting
                 server = servers[i];
                 return server;
             }
         } 
+
+        for (int i = servers.length - 1; i >= 0; i--) { 
+            if (servers[i].getAvailCores() >= job.getCores()) { //the largest first server that meets minimum core requirements 
+                server = servers[i];
+                return server;
+            }
+        } 
+        
         for (int i = 0; i < servers.length; i++) {
-            if (servers[i].getAvailCores() >= job.getCores()) { 
+            if (servers[i].getCores() >= job.getCores()) { //assign jobs to first capable
                 server = servers[i];
                 return server;
             }
