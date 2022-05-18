@@ -34,6 +34,24 @@ public class ServerInfo {
     }
 
     /**
+     * Constructor for empty server
+     */
+    public ServerInfo() {
+        serverName = "";
+        serverID = 0;
+        status = "";
+        startTime = 0;
+        core = 0;
+        memory = 0;
+        disk = 0;
+        availCore = core;
+        availMem = memory;
+        availDisk = disk;
+        wJobs = 0;
+        rJobs = 0;
+    }
+
+    /**
      * 
      * @return - The name of the server
      */
@@ -43,10 +61,34 @@ public class ServerInfo {
 
     /**
      * 
-     * @return - The number of cores 
+     * @return - The number of cores available
+     */
+    public int getAvailCores() {
+        return this.availCore;
+    }
+
+    /**
+     * 
+     * @return - The number of cores
      */
     public int getCores() {
         return this.core;
+    }
+
+    /**
+     * 
+     * @return - The amount of memory available
+     */
+    public int getAvailMem() {
+        return this.availMem;
+    }
+
+    /**
+     * 
+     * @return - The amount of disk available
+     */
+    public int getAvailDisk() {
+        return this.availDisk;
     }
 
     /**
@@ -59,26 +101,42 @@ public class ServerInfo {
 
     /**
      * Sets the available cores of server after taking a job
-     * @param taken - the amount of cores taken by a job
+     * @param taken - The amount of cores taken (or freed) by a job
      */
     public void setAvailCores(int taken) {
-        this.availCore = this.availCore - taken;
+        this.availCore = this.availCore + taken;
     }
 
     /**
      * Sets the available memory of server after taking a job
-     * @param taken - the amount of memory taken by a job
+     * @param taken - The amount of memory taken (or freed) by a job
      */
     public void setAvailMem(int taken) {
-        this.availMem = this.availMem - taken;
+        this.availMem = this.availMem + taken;
     }
 
     /**
      * Sets the available disk of server after taking a job
-     * @param taken - the amount of disk taken by a job
+     * @param taken - The amount of disk taken (or freed) by a job
      */
     public void setAvailDisk(int taken) {
-        this.availDisk = this.availDisk - taken;
+        this.availDisk = this.availDisk + taken;
+    }
+    
+    /**
+     * 
+     * @return - True if there are jobs running
+     */
+    public boolean hasJobRunning() {
+        return (this.rJobs > 0);
+    }
+
+    /**
+     * 
+     * @return - True if there are jobs waiting
+     */
+    public boolean hasJobWaiting() {
+        return (this.wJobs > 0);
     }
 
     /**
@@ -154,5 +212,43 @@ public class ServerInfo {
         return largestServer;
     }
 
+    /**
+     * 
+     * @param servers - The array of servers
+     * @param job - The job information
+     * @param minRemainingPartition - The minimum partition specified
+     * @return - The first server that meets minimum core requirements and leaves a specified core partition
+     */
+    public static ServerInfo findClosestCore(ServerInfo[] servers, JobInfo job, int minRemainingPartition) {
+        ServerInfo server = new ServerInfo();
+        for (int i = 0; i < servers.length; i++) {
+            if (servers[i].getAvailCores() >= job.getCores() + minRemainingPartition && servers[i].getAvailMem() >= job.getMem() && servers[i].getAvailDisk() >= job.getDisk()) { //the first server that meets minimum requirements
+                server = servers[i];
+                return server;
+            }
+        } // no free servers that meet requirement
+        
+        for (int i = 0; i < servers.length; i++) { 
+            if (servers[i].getCores() >= job.getCores() + minRemainingPartition && !servers[i].hasJobWaiting()) { //the first server that meets minimum core requirements and has no job waiting
+                server = servers[i];
+                return server;
+            }
+        } // no servers with no waiting jobs that meet requirement
+        
+        //all servers in use and have jobs waiting
+        for (int i = 0; i < servers.length; i++) {
+            if (servers[i].getCores() >= job.getCores() + minRemainingPartition) { //the first server that meets minimum core requirements
+                server = servers[i];
+                return server;
+            }
+        } 
+        for (int i = 0; i < servers.length; i++) {
+            if (servers[i].getAvailCores() >= job.getCores()) { 
+                server = servers[i];
+                return server;
+            }
+        } 
+        return server;
+    }
 
 }
