@@ -1,4 +1,5 @@
 package COMP3100Project46461019;
+import java.util.ArrayList;
 
 public class JobInfo {
     int submitTime;
@@ -19,6 +20,18 @@ public class JobInfo {
         coresRequired = Integer.parseInt(info[4]);
         memRequired = Integer.parseInt(info[5]);
         diskRequired = Integer.parseInt(info[6]);
+    }
+
+    /**
+     * Constructor
+     */
+    public JobInfo() {
+        submitTime = 0;
+        index = 0;
+        runTime = 0;
+        coresRequired = 0;
+        memRequired = 0;
+        diskRequired = 0;
     }
 
     /**
@@ -51,6 +64,15 @@ public class JobInfo {
      */
     public int getDisk() {
         return this.diskRequired;
+    }
+
+    public static JobInfo getJob(ArrayList<JobInfo> jobs, int jobID) {
+        for (int i = 0; i < jobs.size(); i++) {
+            if (jobs.get(i).getIndex() == jobID) {
+                return jobs.get(i);
+            }
+        }
+        return new JobInfo();
     }
 
     /**
