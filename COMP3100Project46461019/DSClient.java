@@ -92,6 +92,10 @@ public class DSClient {
             else if (alg.equals("FC")) {
                 firstCapable(sResponse, input, output);
             }
+            else if (alg.equals("SC")) {
+                ServerInfo[] servers = readServer(input, output);
+                customSchedule(sResponse, servers, input, output);
+            }
         }
         catch (Exception e) {
             System.out.println(e);
@@ -197,20 +201,16 @@ public class DSClient {
         try {
             String simEvent, jobSchd;
             JobInfo job; 
-            int i = 0;
             while (!sResponse.equals("NONE")) {
                 simEvent = sResponse.split(" ")[0];
                 if (simEvent.equals("JOBN")) {
-                    // job = new JobInfo(sResponse.split(" "));
-                    // jobSchd = "SCHD " + job.getIndex() + " " + servers[i].getName() + " " + servers[i].getID() + "\n";
-                    // i++;
-                    // output.write(jobSchd.getBytes());
-                    // output.flush();
+                    job = new JobInfo(sResponse.split(" "));
+                    ServerInfo server = ServerInfo.findClosestCore(servers, job, 2);
+                    jobSchd = "SCHD " + job.getIndex() + " " + server.getName() + " " + server.getID() + "\n";
+                    output.write(jobSchd.getBytes());
+                    output.flush();
                     
-                    // sResponse = input.readLine(); //expect ok
-                    // if (i >= servers.length) {
-                    //     i = 0;
-                    // } 
+                    sResponse = input.readLine(); //expect ok
                 }
                 output.write(("REDY\n").getBytes());
                 output.flush();
@@ -260,6 +260,9 @@ public class DSClient {
             }
             else if (args[0].equals("-fc")) {
                 alg = "FC";
+            }
+            else if (args[0].equals("-cs")) {
+                alg = "CS";
             }
             else {
                 alg = "";
