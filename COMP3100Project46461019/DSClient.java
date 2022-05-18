@@ -2,6 +2,7 @@ package COMP3100Project46461019;
 
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Author: Nathan Ho
@@ -92,7 +93,7 @@ public class DSClient {
             else if (alg.equals("FC")) {
                 firstCapable(sResponse, input, output);
             }
-            else if (alg.equals("SC")) {
+            else if (alg.equals("CS")) {
                 ServerInfo[] servers = readServer(input, output);
                 customSchedule(sResponse, servers, input, output);
             }
@@ -199,18 +200,32 @@ public class DSClient {
 
     public static void customSchedule(String sResponse, ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
         try {
+            ArrayList<JobInfo> jobs = new ArrayList<JobInfo>();
             String simEvent, jobSchd;
             JobInfo job; 
+            ServerInfo server;
             while (!sResponse.equals("NONE")) {
                 simEvent = sResponse.split(" ")[0];
                 if (simEvent.equals("JOBN")) {
                     job = new JobInfo(sResponse.split(" "));
-                    ServerInfo server = ServerInfo.findClosestCore(servers, job, 2);
+                    jobs.add(job);
+                    server = ServerInfo.findClosestCore(servers, job, 0);
+                    server.updateServer(-job.getCores(), -job.getMem(), -job.getDisk());
                     jobSchd = "SCHD " + job.getIndex() + " " + server.getName() + " " + server.getID() + "\n";
+
+                    // System.out.println(jobSchd);
                     output.write(jobSchd.getBytes());
                     output.flush();
                     
                     sResponse = input.readLine(); //expect ok
+                }
+                else if (simEvent.equals("JCPL")) {
+                    int id = Integer.parseInt(sResponse.split(" ")[2]);
+                    String serverName = sResponse.split(" ")[3];
+                    int serverID = Integer.parseInt(sResponse.split(" ")[4]);
+                    server = ServerInfo.findServer(serverName, serverID, servers);
+                    job = JobInfo.getJob(jobs, id);
+                    server.updateServer(+job.getCores(), +job.getMem(), +job.getDisk());
                 }
                 output.write(("REDY\n").getBytes());
                 output.flush();
