@@ -1,4 +1,6 @@
 package COMP3100Project46461019;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServerInfo {
     String serverName;
@@ -85,10 +87,26 @@ public class ServerInfo {
 
     /**
      * 
+     * @return - The amount of memory
+     */
+    public int getMem() {
+        return this.memory;
+    }
+
+    /**
+     * 
      * @return - The amount of disk available
      */
     public int getAvailDisk() {
         return this.availDisk;
+    }
+
+    /**
+     * 
+     * @return - The amount of disk
+     */
+    public int getDisk() {
+        return this.disk;
     }
 
     /**
@@ -233,35 +251,43 @@ public class ServerInfo {
         return largestServer;
     }
 
+    public static HashMap<String, int[]> mapServers(ServerInfo[] servers) {
+        HashMap<String,int[]> serversMap = new HashMap<>();
+        for (int i = 0; i < servers.length; i++) {
+            int[] value = {0, servers[i].getID()};
+            serversMap.put(servers[i].getName(), value);
+        }
+        return serversMap;
+    } 
+
     /**
      * 
      * @param servers - The array of servers
      * @param job - The job information
      * @param minRemainingPartition - The minimum partition specified
+     * @param serversMap - A map of the servers
      * @return - The first server that meets minimum core requirements and leaves a specified core partition
      */
-    public static ServerInfo findClosestCore(ServerInfo[] servers, JobInfo job, int minRemainingPartition) {
+    public static ServerInfo findClosestCore(ServerInfo[] servers, JobInfo job, int minRemainingPartition, HashMap<String, int[]> serversMap) {
         ServerInfo server = new ServerInfo();
-        for (int i = 0; i < servers.length; i++) { 
-            if (servers[i].getAvailCores() >= job.getCores() + minRemainingPartition) { //the first server that meets minimum core requirements and has no job waiting
+        for (int i = 0; i < servers.length; i++) { //first available
+            if (servers[i].getAvailCores() >= job.getCores() + minRemainingPartition && servers[i].getAvailDisk() >= job.getDisk() && servers[i].getAvailMem() >= job.getMem()) { //the first server that meets minimum core requirements and has no job waiting
                 server = servers[i];
                 return server;
             }
         } 
 
-        for (int i = servers.length - 1; i >= 0; i--) { 
-            if (servers[i].getAvailCores() >= job.getCores()) { //the largest first server that meets minimum core requirements 
-                server = servers[i];
-                return server;
+        // otherwise round robin of first capable server type
+        for (String name : serversMap.keySet()){
+            ServerInfo s = findServer(name, 0, servers);
+            if (s.getCores() >= job.getCores() && s.getDisk() >= job.getDisk() && s.getMem() >= job.getMem()) {
+                int[] serverVals = serversMap.get(name);
+                int[] valuesToPut = {(serverVals[0] + 1) % (serverVals[1] + 1), serverVals[1]};
+                serversMap.put(name, valuesToPut);
+                s = findServer(name, valuesToPut[0], servers);
+                return s;
             }
-        } 
-        
-        for (int i = 0; i < servers.length; i++) {
-            if (servers[i].getCores() >= job.getCores()) { //assign jobs to first capable
-                server = servers[i];
-                return server;
-            }
-        } 
+        }
         return server;
     }
 

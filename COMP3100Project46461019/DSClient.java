@@ -2,7 +2,7 @@ package COMP3100Project46461019;
 
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Author: Nathan Ho
@@ -201,6 +201,7 @@ public class DSClient {
     public static void customSchedule(String sResponse, ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
         try {
             ArrayList<JobInfo> jobs = new ArrayList<JobInfo>();
+            HashMap<String, int[]> serversMap = ServerInfo.mapServers(servers);
             String simEvent, jobSchd;
             JobInfo job; 
             ServerInfo server;
@@ -209,7 +210,7 @@ public class DSClient {
                 if (simEvent.equals("JOBN")) {
                     job = new JobInfo(sResponse.split(" "));
                     jobs.add(job);
-                    server = ServerInfo.findClosestCore(servers, job, 0);
+                    server = ServerInfo.findClosestCore(servers, job, 0, serversMap);
                     server.updateServer(-job.getCores(), -job.getMem(), -job.getDisk());
                     jobSchd = "SCHD " + job.getIndex() + " " + server.getName() + " " + server.getID() + "\n";
 
