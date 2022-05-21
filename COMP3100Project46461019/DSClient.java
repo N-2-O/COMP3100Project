@@ -93,9 +93,9 @@ public class DSClient {
             else if (alg.equals("FC")) {
                 firstCapable(sResponse, input, output);
             }
-            else if (alg.equals("CS")) {
+            else if (alg.equals("FACRR")) {
                 ServerInfo[] servers = readServer(input, output);
-                customSchedule(sResponse, servers, input, output);
+                firstAvailableCapableRoundRobin(sResponse, servers, input, output);
             }
         }
         catch (Exception e) {
@@ -198,7 +198,14 @@ public class DSClient {
         }
     }
 
-    public static void customSchedule(String sResponse, ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
+    /**
+     * 
+     * @param sResponse - Initial response to first REDY by client 
+     * @param servers - The list of servers available
+     * @param input - The input stream
+     * @param output - The output Stream
+     */
+    public static void firstAvailableCapableRoundRobin(String sResponse, ServerInfo[] servers, BufferedReader input, DataOutputStream output) {
         try {
             ArrayList<JobInfo> jobs = new ArrayList<JobInfo>();
             HashMap<String, int[]> serversMap = ServerInfo.mapServers(servers);
@@ -210,11 +217,13 @@ public class DSClient {
                 if (simEvent.equals("JOBN")) {
                     job = new JobInfo(sResponse.split(" "));
                     jobs.add(job);
-                    server = ServerInfo.findClosestCore(servers, job, 0, serversMap);
+                    server = ServerInfo.firstAvailable(servers, job); // gets first available server
+                    if (server.getName().equals("")) { // otherwise schedule jobs to first capable but in a round robin fashion
+                        server = ServerInfo.capableRoundRobin(servers, job, serversMap); 
+                    }
                     server.updateServer(-job.getCores(), -job.getMem(), -job.getDisk());
                     jobSchd = "SCHD " + job.getIndex() + " " + server.getName() + " " + server.getID() + "\n";
 
-                    // System.out.println(jobSchd);
                     output.write(jobSchd.getBytes());
                     output.flush();
                     
@@ -264,26 +273,31 @@ public class DSClient {
         System.out.println("\t $ java COMP3100Project46461019.DSClient -lrr");
         System.exit(1);
     }
+    
+    /**
+     * 
+     * @param args - Program arguments
+     */
     public static void main(String args[]) {
+        String alg;
+        final int defaultPort = 50000;
+        if (args.length < 1) {
+            incorrectUsage();
+        }
+        if (args[0].equals("-lrr")) {
+            alg = "LRR";
+        }
+        else if (args[0].equals("-fc")) {
+            alg = "FC";
+        }
+        else if (args[0].equals("-facrr")) {
+            alg = "FACRR";
+        }
+        else {
+            alg = "";
+            incorrectUsage();
+        }
         try {
-            String alg;
-            final int defaultPort = 50000;
-            if (args.length < 1) {
-                incorrectUsage();
-            }
-            if (args[0].equals("-lrr")) {
-                alg = "LRR";
-            }
-            else if (args[0].equals("-fc")) {
-                alg = "FC";
-            }
-            else if (args[0].equals("-cs")) {
-                alg = "CS";
-            }
-            else {
-                alg = "";
-                incorrectUsage();
-            }
             System.out.println("DSClient simulator started");
             Socket s = new Socket("localhost", defaultPort);
             BufferedReader dIn = new BufferedReader(new InputStreamReader(s.getInputStream()));
