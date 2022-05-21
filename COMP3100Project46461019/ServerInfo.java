@@ -1,6 +1,5 @@
 package COMP3100Project46461019;
 import java.util.HashMap;
-import java.util.Map;
 
 public class ServerInfo {
     String serverName;
@@ -251,10 +250,18 @@ public class ServerInfo {
         return largestServer;
     }
 
+    /**
+     * 
+     * @param servers - Array of servers
+     * @return - A hashmap of servers with the name as the key and an int array as the value
+     *         - The first value of the int array is initialised to 0 (for round robin operations)
+     *         - The second value of the int array is the index of the last server of that type
+     */
     public static HashMap<String, int[]> mapServers(ServerInfo[] servers) {
         HashMap<String,int[]> serversMap = new HashMap<>();
+        int[] value = {0, 0};
         for (int i = 0; i < servers.length; i++) {
-            int[] value = {0, servers[i].getID()};
+            value[1] = servers[i].getID();
             serversMap.put(servers[i].getName(), value);
         }
         return serversMap;
@@ -264,31 +271,40 @@ public class ServerInfo {
      * 
      * @param servers - The array of servers
      * @param job - The job information
-     * @param minRemainingPartition - The minimum partition specified
-     * @param serversMap - A map of the servers
-     * @return - The first server that meets minimum core requirements and leaves a specified core partition
+     * @return - The first server that meets minimum core requirements
      */
-    public static ServerInfo findClosestCore(ServerInfo[] servers, JobInfo job, int minRemainingPartition, HashMap<String, int[]> serversMap) {
+    public static ServerInfo firstAvailable(ServerInfo[] servers, JobInfo job) {
         ServerInfo server = new ServerInfo();
         for (int i = 0; i < servers.length; i++) { //first available
-            if (servers[i].getAvailCores() >= job.getCores() + minRemainingPartition && servers[i].getAvailDisk() >= job.getDisk() && servers[i].getAvailMem() >= job.getMem()) { //the first server that meets minimum core requirements and has no job waiting
+            if (servers[i].getAvailCores() >= job.getCores() && servers[i].getAvailDisk() >= job.getDisk() && servers[i].getAvailMem() >= job.getMem()) { //the first server that meets minimum core requirements and has no job waiting
                 server = servers[i];
                 return server;
             }
-        } 
+        }
+        return server;
+    }
 
-        // otherwise round robin of first capable server type
+    /**
+     * 
+     * @param servers - Array of all servers
+     * @param job - The job to be scheduled
+     * @param serversMap - A map of all server types and number of each
+     * @return - The first server type capable, in a round robin fashion
+     */
+    public static ServerInfo capableRoundRobin(ServerInfo[] servers, JobInfo job, HashMap<String, int[]> serversMap) {
+        ServerInfo s = new ServerInfo();
+        int[] serverVals;
         for (String name : serversMap.keySet()){
-            ServerInfo s = findServer(name, 0, servers);
+            s = findServer(name, 0, servers);
             if (s.getCores() >= job.getCores() && s.getDisk() >= job.getDisk() && s.getMem() >= job.getMem()) {
-                int[] serverVals = serversMap.get(name);
+                serverVals = serversMap.get(name);
                 int[] valuesToPut = {(serverVals[0] + 1) % (serverVals[1] + 1), serverVals[1]};
                 serversMap.put(name, valuesToPut);
                 s = findServer(name, valuesToPut[0], servers);
                 return s;
             }
         }
-        return server;
+        return s;
     }
 
 }
