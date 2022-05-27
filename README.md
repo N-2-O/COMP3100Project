@@ -11,7 +11,7 @@ Built on stage 1, this project involves the design and implementation of a new s
 ## Usage
 
 Compile: 
-`$ javac COMP3100Project46461019/DSClient.java COMP3100Project46461019/ServerInfo.java COMP3100Project46461019/JobInfo.java`
+`$ javac COMP3100Project46461019/*.java`
 
 Running: 
 `$ java COMP3100Project46461019.DSClient -lrr | -facrr | -fc`
