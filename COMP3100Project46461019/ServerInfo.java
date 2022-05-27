@@ -1,5 +1,6 @@
 package COMP3100Project46461019;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ServerInfo {
     String serverName;
@@ -259,9 +260,8 @@ public class ServerInfo {
      */
     public static HashMap<String, int[]> mapServers(ServerInfo[] servers) {
         HashMap<String,int[]> serversMap = new HashMap<>();
-        int[] value = {0, 0};
         for (int i = 0; i < servers.length; i++) {
-            value[1] = servers[i].getID();
+            int[] value = {0, servers[i].getID()};
             serversMap.put(servers[i].getName(), value);
         }
         return serversMap;
